@@ -1,14 +1,14 @@
-package com.mbarca89.DenTracker.dto;
+package com.mbarca89.DenTracker.dto.request;
 
 import lombok.Data;
 
 @Data
-public class ClientResponse {
+public class ClientRequest {
     private Long id;
     private String clientName;
     private String clientSurname;
-    private String username;
     private String databaseUrl;
+    private String username;
+    private String password;
     private String subscriptionStatus;
-    private String createdAt;
 }

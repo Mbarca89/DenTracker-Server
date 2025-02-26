@@ -60,7 +60,7 @@ public class DataSourceConfig {
     public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource) {
         LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
         factoryBean.setDataSource(dataSource);
-        factoryBean.setPackagesToScan("com.mbarca89.DenTracker.entity"); // Paquete de las entidades JPA
+        factoryBean.setPackagesToScan("com.mbarca89.DenTracker.entity.main"); // Paquete de las entidades JPA
 
         // Configuración de Hibernate
         JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();

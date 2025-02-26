@@ -1,4 +1,4 @@
-package com.mbarca89.DenTracker.entity;
+package com.mbarca89.DenTracker.entity.main;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -32,6 +32,7 @@ public class Client implements UserDetails {
     @Column(name = "database_url", nullable = false)
     private String databaseUrl;
 
+    @Column(unique = true)
     private String username;
 
     private String password;

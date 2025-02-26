@@ -1,7 +1,7 @@
-package com.mbarca89.DenTracker.controller;
+package com.mbarca89.DenTracker.controller.main;
 
-import com.mbarca89.DenTracker.dto.AuthResponse;
-import com.mbarca89.DenTracker.dto.LoginRequest;
+import com.mbarca89.DenTracker.dto.response.AuthResponse;
+import com.mbarca89.DenTracker.dto.response.LoginRequest;
 import com.mbarca89.DenTracker.exception.ResourceNotFoundException;
 import com.mbarca89.DenTracker.service.AuthService;
 import com.mbarca89.DenTracker.service.impl.ClientServiceImpl;

@@ -1,4 +1,4 @@
-package com.mbarca89.DenTracker.dto;
+package com.mbarca89.DenTracker.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,5 +1,6 @@
 package com.mbarca89.DenTracker.service.impl;
 
+import com.mbarca89.DenTracker.entity.main.Client;
 import com.mbarca89.DenTracker.service.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -61,16 +62,22 @@ public class JwtServiceImpl implements JwtService {
     }
 
     private String getToken(Map<String,Object> extraClaims, UserDetails user, String clientId) {
+        Client client = (Client) user;
+
         extraClaims.put("client_id", clientId);
+        extraClaims.put("role", client.getRole().name());
+        extraClaims.put("subscription", client.getSubscriptionStatus().name());
+
         return Jwts
                 .builder()
                 .setClaims(extraClaims)
-                .setSubject(user.getUsername())
+                .setSubject(client.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis()+(30L * 24 * 60 * 60 * 1000)))
+                .setExpiration(new Date(System.currentTimeMillis() + (30L * 24 * 60 * 60 * 1000))) // 30 días
                 .signWith(getKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
+
 
     private Key getKey() {
         byte[] keyBytes= Decoders.BASE64.decode(SECRET_KEY);
@@ -81,4 +88,19 @@ public class JwtServiceImpl implements JwtService {
     public String getClientIdFromToken(String token) {
         return getClaim(token, claims -> claims.get("client_id", String.class));
     }
+
+    @Override
+    public String getRoleFromToken(String token) {
+        return getClaim(token, claims -> claims.get("role", String.class));
+    }
+
+    @Override
+    public String getSubscriptionFromToken(String token) {
+        return getClaim(token, claims -> claims.get("subscription", String.class));
+    }
+    @Override
+    public Long getClientIdAsLong(String token) {
+        return Long.valueOf(getClientIdFromToken(token));
+    }
+
 }

@@ -1,5 +1,7 @@
 package com.mbarca89.DenTracker.entity.main;
 
+import com.mbarca89.DenTracker.entity.enums.Role;
+import com.mbarca89.DenTracker.entity.enums.SubscriptionStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,44 +31,29 @@ public class Client implements UserDetails {
     @Column(name = "client_surname", nullable = false)
     private String clientSurname;
 
-    @Column(name = "database_url", nullable = false)
-    private String databaseUrl;
-
     @Column(unique = true)
     private String username;
 
     private String password;
 
-    @Column(name = "subscription_status")
-    private String subscriptionStatus;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "subscription_status", nullable = false)
+    private SubscriptionStatus subscriptionStatus = SubscriptionStatus.STANDARD;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private Role role = Role.CLIENT;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        {
-            return List.of(new SimpleGrantedAuthority(subscriptionStatus));
-        }
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
+    @Override public boolean isAccountNonExpired() { return true; }
+    @Override public boolean isAccountNonLocked() { return true; }
+    @Override public boolean isCredentialsNonExpired() { return true; }
+    @Override public boolean isEnabled() { return true; }
 }

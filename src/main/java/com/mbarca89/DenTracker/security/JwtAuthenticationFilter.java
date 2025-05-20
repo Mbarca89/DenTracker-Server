@@ -1,6 +1,6 @@
 package com.mbarca89.DenTracker.security;
 
-import com.mbarca89.DenTracker.context.ClientContext;
+import com.mbarca89.DenTracker.context.TenantContext;
 import com.mbarca89.DenTracker.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -31,9 +31,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
         final String token = getTokenFromRequest(request);
         final String userName;
+
         if (token == null) {
             filterChain.doFilter(request, response);
             return;
@@ -44,20 +47,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
 
             if (jwtService.isTokenValid(token, userDetails)) {
-                // Extraemos el clientId del token y lo almacenamos en el contexto
-                String clientId = jwtService.getClientIdFromToken(token);  // Aquí extraemos el clientId
-                ClientContext.setClientId(clientId);  // Establecemos el clientId en el contexto
+                String clientId = jwtService.getClientIdFromToken(token);
+                String role = jwtService.getRoleFromToken(token);
 
-                // Continuamos con la autenticación del usuario
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                if ("CLIENT".equalsIgnoreCase(role)) {
+                    TenantContext.setTenantId(Long.parseLong(clientId));
+                }
+
+                UsernamePasswordAuthenticationToken authToken =
+                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
 
-        filterChain.doFilter(request, response);
+        try {
+            filterChain.doFilter(request, response); // ✅ solo una vez
+        } finally {
+            TenantContext.clear(); // ✅ se limpia después de pasar
+        }
     }
+
 
     private String getTokenFromRequest(HttpServletRequest request) {
         String token = "";

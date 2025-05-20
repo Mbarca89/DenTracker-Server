@@ -1,4 +1,4 @@
-package com.mbarca89.DenTracker.controller.main;
+package com.mbarca89.DenTracker.controller.publicController;
 
 import com.mbarca89.DenTracker.dto.response.AuthResponse;
 import com.mbarca89.DenTracker.dto.response.LoginRequest;
@@ -12,11 +12,11 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/public/auth")
 public class AuthController {
 
     @Autowired
-    private ClientServiceImpl clientService;  // Aquí debería ser un servicio que valide usuarios (con credenciales)
+    private ClientServiceImpl clientService;
 
     @Autowired
     private AuthService authService;

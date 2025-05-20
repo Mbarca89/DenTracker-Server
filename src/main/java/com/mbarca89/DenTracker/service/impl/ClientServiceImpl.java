@@ -1,50 +1,32 @@
 package com.mbarca89.DenTracker.service.impl;
 
-import com.mbarca89.DenTracker.datasource.DynamicDataSourceImpl;
 import com.mbarca89.DenTracker.dto.request.ClientRequest;
+import com.mbarca89.DenTracker.dto.response.AuthResponse;
 import com.mbarca89.DenTracker.dto.response.ClientResponse;
 import com.mbarca89.DenTracker.entity.main.Client;
+import com.mbarca89.DenTracker.entity.enums.Role;
+import com.mbarca89.DenTracker.entity.enums.SubscriptionStatus;
 import com.mbarca89.DenTracker.exception.ResourceNotFoundException;
+import com.mbarca89.DenTracker.exception.UserAlreadyExistsException;
 import com.mbarca89.DenTracker.repository.ClientRepository;
 import com.mbarca89.DenTracker.service.ClientService;
+import com.mbarca89.DenTracker.service.JwtService;
 import com.mbarca89.DenTracker.util.CryptoUtils;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.orm.jpa.JpaVendorAdapter;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import javax.sql.DataSource;
-import java.security.NoSuchAlgorithmException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ClientServiceImpl implements ClientService {
 
-    @Autowired
-    private ClientRepository clientRepository;
-
-    @Autowired
-    private DynamicDataSourceImpl dynamicDataSource;
-
-    @Autowired
-    PasswordEncoder passwordEncoder;
-
-    @Autowired
-    CryptoUtils cryptoUtils;
+    private final ClientRepository clientRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final CryptoUtils cryptoUtils;
+    private final JwtService jwtService;
 
     @Override
     public List<ClientResponse> getAllClients() {
@@ -58,81 +40,42 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public ClientResponse registerNewClient(ClientRequest request) throws NoSuchAlgorithmException {
-        // Paso 1: Crear un nuevo cliente en la tabla clients
-        Client client = mapToClient(request);
-        client.setDatabaseUrl(request.getClientName().replaceAll(" ", "_") + "_" + request.getClientSurname().replaceAll(" ", "_") + "_" + System.currentTimeMillis()); // URL de la base de datos
-        client.setCreatedAt(LocalDateTime.now());
-
-        // Guardar el cliente en la base de datos
-        Client savedClient = clientRepository.save(client);
-
-        // Paso 2: Crear la base de datos para el cliente
-        try (Connection connection = DriverManager.getConnection(
-                "jdbc:postgresql://localhost:5432/denTracker", // Conexión al servidor principal
-                "mbarca89", // Usuario de PostgreSQL
-                "phoenixrules1A_")) { // Contraseña de PostgreSQL
-
-            // Crear la base de datos del cliente
-            String createDatabaseQuery = "CREATE DATABASE \"" + savedClient.getDatabaseUrl() + "\"";
-            try (Statement statement = connection.createStatement()) {
-                statement.executeUpdate(createDatabaseQuery);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error al crear la base de datos para el cliente: " + e.getMessage());
+    public AuthResponse registerAndAuthenticateClient(ClientRequest request) {
+        if (clientRepository.existsByUsername(request.getUsername())) {
+            throw new UserAlreadyExistsException("Ya existe un usuario con ese nombre.");
         }
 
-        // Paso 3: Configurar el DataSource para el cliente
+        String decryptedPassword;
         try {
-            DataSource clientDataSource = new DriverManagerDataSource(
-                    "jdbc:postgresql://localhost:5432/" + savedClient.getDatabaseUrl(), // URL de la base de datos del cliente
-                    "mbarca89", // Cambiar por las credenciales de tu base de datos
-                    "phoenixrules1A_" // Cambiar por las credenciales de tu base de datos
-            );
-
-            // Agregar el DataSource del cliente a la lista de fuentes de datos dinámicas
-            dynamicDataSource.addDataSource(savedClient.getId().toString(), clientDataSource);
-
-            // Paso 4: Crear el EntityManagerFactory para la nueva base de datos
-            LocalContainerEntityManagerFactoryBean factoryBean = createEntityManagerFactory(clientDataSource);
-            factoryBean.afterPropertiesSet();
-            EntityManagerFactory entityManagerFactory = factoryBean.getObject();
-            EntityManager entityManager = entityManagerFactory.createEntityManager();
-
-            // Inicializar el esquema (crear tablas) usando JPA
-            entityManager.getTransaction().begin();
-            entityManager.createNativeQuery("SELECT 1").getResultList(); // Esto forzará a Hibernate a inicializar el esquema
-            entityManager.getTransaction().commit();
-            entityManager.close();
+            decryptedPassword = cryptoUtils.decrypt(request.getPassword());
         } catch (Exception e) {
-            throw new RuntimeException("Error al configurar la base de datos para el cliente: " + e.getMessage());
+            throw new RuntimeException("Error al desencriptar la contraseña", e);
         }
-        return mapToResponse(savedClient);
-    }
 
-    private LocalContainerEntityManagerFactoryBean createEntityManagerFactory(DataSource dataSource) {
-        LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
-        factoryBean.setDataSource(dataSource);
-        factoryBean.setPackagesToScan("com.mbarca89.DenTracker.entity.client"); // Paquete de las entidades JPA
+        String hashedPassword = passwordEncoder.encode(decryptedPassword);
 
-        // Configuración de Hibernate
-        JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-        factoryBean.setJpaVendorAdapter(vendorAdapter);
+        Client client = new Client();
+        client.setClientName(request.getClientName());
+        client.setClientSurname(request.getClientSurname());
+        client.setUsername(request.getUsername());
+        client.setPassword(hashedPassword);
+        client.setCreatedAt(LocalDateTime.now());
+        client.setRole(Role.CLIENT);
+        client.setSubscriptionStatus(SubscriptionStatus.STANDARD); // O configurable
 
-        // Propiedades adicionales de JPA
-        Map<String, Object> jpaPropertiesMap = new HashMap<>();
-        jpaPropertiesMap.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
-        jpaPropertiesMap.put("hibernate.show_sql", "true");
-        jpaPropertiesMap.put("hibernate.format_sql", "true");
-        jpaPropertiesMap.put("hibernate.hbm2ddl.auto", "update"); // O "create" o "create-drop" según tus necesidades
+        clientRepository.save(client);
 
-        // Convertir el Map a Properties
-        Properties jpaProperties = new Properties();
-        jpaProperties.putAll(jpaPropertiesMap);
+        String token = jwtService.getToken(client, client.getId().toString());
 
-        factoryBean.setJpaProperties(jpaProperties);
+        AuthResponse response = new AuthResponse();
+        response.setId(client.getId());
+        response.setUserName(client.getUsername());
+        response.setName(client.getClientName());
+        response.setSurname(client.getClientSurname());
+        response.setSubscriptionStatus(client.getSubscriptionStatus());
+        response.setToken(token);
 
-        return factoryBean;
+        return response;
     }
 
     private ClientResponse mapToResponse(Client client) {
@@ -141,32 +84,8 @@ public class ClientServiceImpl implements ClientService {
         response.setClientName(client.getClientName());
         response.setClientSurname(client.getClientSurname());
         response.setUsername(client.getUsername());
-        response.setDatabaseUrl(client.getDatabaseUrl());
         response.setSubscriptionStatus(client.getSubscriptionStatus());
         response.setCreatedAt(client.getCreatedAt().toString());
         return response;
-    }
-
-    private Client mapToClient(ClientRequest clientRequest) throws NoSuchAlgorithmException {
-
-        String decryptedPassword;
-        try {
-            decryptedPassword = cryptoUtils.decrypt(clientRequest.getPassword());
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error al desencriptar la contraseña", e);
-        }
-
-        String hashedPassword = passwordEncoder.encode(decryptedPassword);
-        System.out.println("mapper: " + clientRequest.getClientSurname());
-        Client client = new Client();
-        if (clientRequest.getId() != null) client.setId(clientRequest.getId());
-        client.setClientName(clientRequest.getClientName());
-        client.setClientSurname(clientRequest.getClientSurname());
-        client.setUsername(clientRequest.getUsername());
-        client.setPassword(hashedPassword);
-        client.setSubscriptionStatus(clientRequest.getSubscriptionStatus());
-        client.setDatabaseUrl(clientRequest.getDatabaseUrl());
-        return client;
     }
 }

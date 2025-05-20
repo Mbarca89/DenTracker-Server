@@ -8,56 +8,62 @@ import com.mbarca89.DenTracker.dto.response.AuthResponse;
 import com.mbarca89.DenTracker.service.AuthService;
 import com.mbarca89.DenTracker.service.JwtService;
 import com.mbarca89.DenTracker.util.CryptoUtils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
-    @Autowired
-    private ClientRepository clientRepository;
-    @Autowired
-    private JwtService jwtService;
-    @Autowired
-    private CryptoUtils cryptoUtils;
+    private final AuthenticationManager authenticationManager;
+    private final ClientRepository clientRepository;
+    private final JwtService jwtService;
+    private final CryptoUtils cryptoUtils;
 
     @Override
-    public AuthResponse login(LoginRequest request) throws ResourceNotFoundException {
-
+    public AuthResponse login(LoginRequest request) {
         String decryptedPassword;
         try {
             decryptedPassword = cryptoUtils.decrypt(request.getPassword());
         } catch (Exception e) {
-            throw new RuntimeException("Error al desencriptar la contraseña", e);
+            throw new RuntimeException("Error al desencriptar la contraseña");
         }
 
-        // Autenticación del usuario
-        try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), decryptedPassword));
-        } catch (Exception e) {
-            throw new RuntimeException("Error de inicio de sesión: " + e.getMessage(), e);
-        }
-
-        // Obtener el cliente por nombre de usuario
         Client client = clientRepository.findByUsername(request.getUsername());
         if (client == null) {
-            throw new ResourceNotFoundException("Usuario no encontrado");
+            throw new UsernameNotFoundException("El usuario no existe");
         }
 
-        // Generar el token y crear la respuesta de autenticación
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getUsername(),
+                            decryptedPassword
+                    )
+            );
+        } catch (BadCredentialsException e) {
+            throw new BadCredentialsException("La contraseña es incorrecta");
+        } catch (Exception e) {
+            throw new RuntimeException("Error al autenticar: " + e.getMessage());
+        }
+
         String token = jwtService.getToken(client, client.getId().toString());
+
         AuthResponse response = new AuthResponse();
+        response.setId(client.getId());
         response.setUserName(client.getUsername());
-        response.setToken(token);
-        response.setSubscriptionStatus(client.getAuthorities());
         response.setName(client.getClientName());
         response.setSurname(client.getClientSurname());
-        response.setId(client.getId());
+        response.setSubscriptionStatus(client.getSubscriptionStatus());
+        response.setToken(token);
+
         return response;
     }
 }
+
 

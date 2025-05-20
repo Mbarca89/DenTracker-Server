@@ -1,6 +1,5 @@
-package com.mbarca89.DenTracker.controller.client;
+package com.mbarca89.DenTracker.controller.clientController;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mbarca89.DenTracker.dto.request.PatientRequestDto;
 import com.mbarca89.DenTracker.entity.client.Patient;
 import com.mbarca89.DenTracker.mapper.PatientMapper;
@@ -12,10 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
-
 @RestController
-@RequestMapping("/api/patients")
+@RequestMapping("/client/patients")
 @CrossOrigin
 public class PatientController {
     @Autowired

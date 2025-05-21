@@ -1,7 +1,7 @@
 package com.mbarca89.DenTracker.controller.mainController;
 
-import com.mbarca89.DenTracker.dto.response.ClientResponse;
-import com.mbarca89.DenTracker.service.impl.ClientServiceImpl;
+import com.mbarca89.DenTracker.dto.response.main.ClientResponse;
+import com.mbarca89.DenTracker.service.main.impl.ClientServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

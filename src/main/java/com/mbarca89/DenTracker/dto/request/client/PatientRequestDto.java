@@ -1,4 +1,4 @@
-package com.mbarca89.DenTracker.dto.request;
+package com.mbarca89.DenTracker.dto.request.client;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

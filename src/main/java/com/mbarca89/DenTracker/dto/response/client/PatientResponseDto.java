@@ -1,4 +1,4 @@
-package com.mbarca89.DenTracker.dto.response;
+package com.mbarca89.DenTracker.dto.response.client;
 
 import jakarta.persistence.Lob;
 import lombok.AllArgsConstructor;

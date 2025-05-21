@@ -1,9 +1,10 @@
-package com.mbarca89.DenTracker.service;
+package com.mbarca89.DenTracker.service.main;
 
 import io.jsonwebtoken.Claims;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.function.Function;
 
 public interface JwtService {
@@ -26,4 +27,7 @@ public interface JwtService {
     String getRoleFromToken(String token);
     String getSubscriptionFromToken(String token);
     Long getClientIdAsLong(String token);
+    boolean validateToken(String token);
+    String generateToken(Map<String, Object> extraClaims, String subject);
+    Long getClientUserIdFromToken(String token);
 }

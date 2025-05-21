@@ -1,16 +1,17 @@
-package com.mbarca89.DenTracker.service.impl;
+package com.mbarca89.DenTracker.service.main.impl;
 
-import com.mbarca89.DenTracker.dto.request.ClientRequest;
-import com.mbarca89.DenTracker.dto.response.AuthResponse;
-import com.mbarca89.DenTracker.dto.response.ClientResponse;
+import com.mbarca89.DenTracker.dto.request.main.ClientRequest;
+import com.mbarca89.DenTracker.dto.response.main.AuthResponse;
+import com.mbarca89.DenTracker.dto.response.main.ClientResponse;
+import com.mbarca89.DenTracker.entity.enums.ClientStatus;
 import com.mbarca89.DenTracker.entity.main.Client;
 import com.mbarca89.DenTracker.entity.enums.Role;
 import com.mbarca89.DenTracker.entity.enums.SubscriptionStatus;
 import com.mbarca89.DenTracker.exception.ResourceNotFoundException;
 import com.mbarca89.DenTracker.exception.UserAlreadyExistsException;
 import com.mbarca89.DenTracker.repository.ClientRepository;
-import com.mbarca89.DenTracker.service.ClientService;
-import com.mbarca89.DenTracker.service.JwtService;
+import com.mbarca89.DenTracker.service.main.ClientService;
+import com.mbarca89.DenTracker.service.main.JwtService;
 import com.mbarca89.DenTracker.util.CryptoUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -41,8 +42,8 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public AuthResponse registerAndAuthenticateClient(ClientRequest request) {
-        if (clientRepository.existsByUsername(request.getUsername())) {
-            throw new UserAlreadyExistsException("Ya existe un usuario con ese nombre.");
+        if (clientRepository.existsByEmail(request.getEmail())) {
+            throw new UserAlreadyExistsException("Ya existe un usuario con ese email.");
         }
 
         String decryptedPassword;
@@ -57,11 +58,12 @@ public class ClientServiceImpl implements ClientService {
         Client client = new Client();
         client.setClientName(request.getClientName());
         client.setClientSurname(request.getClientSurname());
-        client.setUsername(request.getUsername());
+        client.setEmail(request.getEmail());
         client.setPassword(hashedPassword);
         client.setCreatedAt(LocalDateTime.now());
         client.setRole(Role.CLIENT);
-        client.setSubscriptionStatus(SubscriptionStatus.STANDARD); // O configurable
+        client.setSubscriptionStatus(SubscriptionStatus.STANDARD);
+        client.setStatus(ClientStatus.ACTIVE); // ✅ si no estás usando verificación
 
         clientRepository.save(client);
 
@@ -69,14 +71,15 @@ public class ClientServiceImpl implements ClientService {
 
         AuthResponse response = new AuthResponse();
         response.setId(client.getId());
-        response.setUserName(client.getUsername());
         response.setName(client.getClientName());
         response.setSurname(client.getClientSurname());
+        response.setUserName(client.getEmail()); // ✅ importante
         response.setSubscriptionStatus(client.getSubscriptionStatus());
         response.setToken(token);
 
         return response;
     }
+
 
     private ClientResponse mapToResponse(Client client) {
         ClientResponse response = new ClientResponse();

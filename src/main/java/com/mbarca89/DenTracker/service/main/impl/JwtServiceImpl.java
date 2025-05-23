@@ -1,8 +1,10 @@
 package com.mbarca89.DenTracker.service.main.impl;
 
+import com.mbarca89.DenTracker.entity.client.ClientUser;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -133,6 +135,29 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public Long getClientUserIdFromToken(String token) {
         return getClaim(token, claims -> claims.get("client_user_id", Long.class));
+    }
+
+    public String extractTokenFromRequest(HttpServletRequest request) {
+        String header = request.getHeader("Authorization");
+        if (header != null && header.startsWith("Bearer ")) {
+            return header.substring(7);
+        }
+        throw new IllegalStateException("Token no encontrado en el header.");
+    }
+
+    public String generateTokenForClientUser(Client client, ClientUser user) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("client_id", client.getId().toString());
+        claims.put("client_user_id", user.getId());
+        claims.put("role", user.getRole().name());
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(user.getName()) // o un identificador
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION_MS))
+                .signWith(getKey(), SignatureAlgorithm.HS256)
+                .compact();
     }
 
 }

@@ -1,17 +1,17 @@
 package com.mbarca89.DenTracker.controller.publicController;
 
-import com.mbarca89.DenTracker.dto.request.main.ClientRequest;
+import com.mbarca89.DenTracker.dto.request.main.PasswordResetConfirmDto;
+import com.mbarca89.DenTracker.dto.request.main.PasswordResetRequestDto;
 import com.mbarca89.DenTracker.dto.response.main.AuthResponse;
 import com.mbarca89.DenTracker.dto.request.main.LoginRequest;
-import com.mbarca89.DenTracker.exception.ResourceNotFoundException;
 import com.mbarca89.DenTracker.service.main.AuthService;
-import com.mbarca89.DenTracker.service.main.impl.ClientServiceImpl;
+import com.mbarca89.DenTracker.service.main.PasswordResetService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/public/auth")
@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final PasswordResetService passwordResetService;
+
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
@@ -30,5 +32,18 @@ public class AuthController {
         String result = authService.verifyClient(token);
         return ResponseEntity.ok(result);
     }
+
+    @PostMapping("/request-password-reset")
+    public ResponseEntity<?> requestReset(@RequestBody @Valid PasswordResetRequestDto request) {
+        passwordResetService.requestPasswordReset(request.getEmail());
+        return ResponseEntity.ok().body(Map.of("message", "Se ha enviado un email con instrucciones para restablecer la contraseña."));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody @Valid PasswordResetConfirmDto dto) {
+        passwordResetService.resetPassword(dto.getToken(), dto.getNewPassword());
+        return ResponseEntity.ok().body(Map.of("message", "La contraseña ha sido restablecida correctamente."));
+    }
+
 }
 

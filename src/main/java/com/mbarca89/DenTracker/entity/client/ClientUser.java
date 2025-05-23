@@ -1,6 +1,6 @@
 package com.mbarca89.DenTracker.entity.client;
 
-import com.mbarca89.DenTracker.entity.enums.ClientUserRole;
+import com.mbarca89.DenTracker.entity.base.ClientUserRole;
 import com.mbarca89.DenTracker.entity.main.Client;
 import jakarta.persistence.*;
 import lombok.Getter;

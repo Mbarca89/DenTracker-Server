@@ -1,6 +1,6 @@
 package com.mbarca89.DenTracker.dto.response.main;
 
-import com.mbarca89.DenTracker.entity.enums.SubscriptionStatus;
+import com.mbarca89.DenTracker.entity.base.SubscriptionStatus;
 import lombok.Data;
 
 @Data

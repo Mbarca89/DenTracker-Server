@@ -1,4 +1,4 @@
-package com.mbarca89.DenTracker.repository;
+package com.mbarca89.DenTracker.repository.main;
 
 
 import com.mbarca89.DenTracker.entity.main.Client;

@@ -1,7 +1,6 @@
-package com.mbarca89.DenTracker.repository;
+package com.mbarca89.DenTracker.repository.client;
 
 import com.mbarca89.DenTracker.entity.client.ClientUser;
-import com.mbarca89.DenTracker.entity.main.Client;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

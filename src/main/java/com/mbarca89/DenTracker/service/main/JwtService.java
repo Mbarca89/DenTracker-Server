@@ -1,6 +1,9 @@
 package com.mbarca89.DenTracker.service.main;
 
+import com.mbarca89.DenTracker.entity.client.ClientUser;
+import com.mbarca89.DenTracker.entity.main.Client;
 import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Date;
@@ -30,4 +33,6 @@ public interface JwtService {
     boolean validateToken(String token);
     String generateToken(Map<String, Object> extraClaims, String subject);
     Long getClientUserIdFromToken(String token);
+    String extractTokenFromRequest(HttpServletRequest request);
+    String generateTokenForClientUser(Client client, ClientUser user);
 }

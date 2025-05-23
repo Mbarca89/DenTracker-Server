@@ -1,15 +1,11 @@
 package com.mbarca89.DenTracker.service.main.impl;
 
-import com.mbarca89.DenTracker.dto.request.main.ClientRequest;
 import com.mbarca89.DenTracker.dto.request.main.LoginRequest;
 import com.mbarca89.DenTracker.dto.response.main.AuthResponse;
-import com.mbarca89.DenTracker.entity.enums.ClientStatus;
-import com.mbarca89.DenTracker.entity.enums.Role;
-import com.mbarca89.DenTracker.entity.enums.SubscriptionStatus;
+import com.mbarca89.DenTracker.entity.base.ClientStatus;
 import com.mbarca89.DenTracker.entity.main.Client;
 import com.mbarca89.DenTracker.exception.InvalidCredentialsException;
-import com.mbarca89.DenTracker.exception.UserAlreadyExistsException;
-import com.mbarca89.DenTracker.repository.ClientRepository;
+import com.mbarca89.DenTracker.repository.main.ClientRepository;
 import com.mbarca89.DenTracker.service.main.AuthService;
 import com.mbarca89.DenTracker.service.main.EmailService;
 import com.mbarca89.DenTracker.service.main.JwtService;
@@ -23,9 +19,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor

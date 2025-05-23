@@ -1,7 +1,6 @@
 package com.mbarca89.DenTracker.security;
 
-import com.mbarca89.DenTracker.entity.main.Client;
-import com.mbarca89.DenTracker.repository.ClientRepository;
+import com.mbarca89.DenTracker.repository.main.ClientRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

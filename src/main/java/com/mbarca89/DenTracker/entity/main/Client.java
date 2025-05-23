@@ -1,9 +1,9 @@
 package com.mbarca89.DenTracker.entity.main;
 
 import com.mbarca89.DenTracker.entity.client.ClientUser;
-import com.mbarca89.DenTracker.entity.enums.Role;
-import com.mbarca89.DenTracker.entity.enums.SubscriptionStatus;
-import com.mbarca89.DenTracker.entity.enums.ClientStatus;
+import com.mbarca89.DenTracker.entity.base.Role;
+import com.mbarca89.DenTracker.entity.base.SubscriptionStatus;
+import com.mbarca89.DenTracker.entity.base.ClientStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

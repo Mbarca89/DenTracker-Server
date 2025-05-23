@@ -1,6 +1,6 @@
 package com.mbarca89.DenTracker.dto.request.client;
 
-import com.mbarca89.DenTracker.entity.enums.ClientUserRole;
+import com.mbarca89.DenTracker.entity.base.ClientUserRole;
 import lombok.Data;
 
 @Data

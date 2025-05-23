@@ -2,13 +2,17 @@ package com.mbarca89.DenTracker.service.client.Impl;
 
 import com.mbarca89.DenTracker.dto.request.client.ClientUserCreateRequestDto;
 import com.mbarca89.DenTracker.dto.request.client.ClientUserSelectionRequestDto;
+import com.mbarca89.DenTracker.dto.request.client.ClientUserUpdateRequestDto;
 import com.mbarca89.DenTracker.dto.response.client.ClientUserResponseDto;
+import com.mbarca89.DenTracker.dto.response.client.ClientUserSelfResponseDto;
+import com.mbarca89.DenTracker.dto.response.client.ClientUserTokenResponseDto;
 import com.mbarca89.DenTracker.dto.response.main.AuthResponse;
 import com.mbarca89.DenTracker.entity.client.ClientUser;
 import com.mbarca89.DenTracker.entity.main.Client;
+import com.mbarca89.DenTracker.exception.InvalidCredentialsException;
 import com.mbarca89.DenTracker.exception.ResourceNotFoundException;
 import com.mbarca89.DenTracker.mapper.client.ClientUserMapper;
-import com.mbarca89.DenTracker.repository.ClientUserRepository;
+import com.mbarca89.DenTracker.repository.client.ClientUserRepository;
 import com.mbarca89.DenTracker.service.client.ClientUserService;
 import com.mbarca89.DenTracker.service.main.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -31,42 +35,28 @@ public class ClientUserServiceImpl implements ClientUserService {
     private final ClientUserMapper clientUserMapper;
 
     @Override
-    public AuthResponse selectClientUser(ClientUserSelectionRequestDto request, Client authenticatedClient) throws AccessDeniedException {
+    public ClientUserTokenResponseDto authenticateClientUser(ClientUserSelectionRequestDto request, Client client) throws AccessDeniedException {
+        ClientUser user = clientUserRepository.findByIdAndActiveTrue(request.getClientUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("Subusuario no encontrado o inactivo."));
 
-        // 1. Buscar subusuario activo
-        ClientUser clientUser = clientUserRepository.findByIdAndActiveTrue(request.getClientUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("El subusuario no existe o está inactivo."));
-
-        // 2. Verificar que pertenezca al cliente autenticado
-        if (!clientUser.getClient().getId().equals(authenticatedClient.getId())) {
-            throw new AccessDeniedException("Este subusuario no pertenece al cliente autenticado.");
+        if (!user.getClient().getId().equals(client.getId())) {
+            throw new AccessDeniedException("Este subusuario no pertenece a tu cuenta.");
         }
 
-        // 3. Verificar PIN
-        if (!passwordEncoder.matches(request.getPin(), clientUser.getPin())) {
-            throw new BadCredentialsException("PIN incorrecto.");
+        if (!passwordEncoder.matches(request.getPin(), user.getPin())) {
+            throw new InvalidCredentialsException("PIN incorrecto.");
         }
 
-        // 4. Crear claims para el JWT
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("clientId", authenticatedClient.getId());
-        claims.put("clientUserId", clientUser.getId());
-        claims.put("role", clientUser.getRole());
+        String token = jwtService.generateTokenForClientUser(client, user);
 
-        // 5. Generar token
-        String token = jwtService.generateToken(claims, clientUser.getName());
-
-        // 6. Retornar respuesta
-        AuthResponse response = new AuthResponse();
-        response.setId(clientUser.getId());
-        response.setName(clientUser.getName());
-        response.setSurname(null); // Si no tenés campo surname en ClientUser
-        response.setUserName(clientUser.getName());
-        response.setToken(token);
-        response.setSubscriptionStatus(authenticatedClient.getSubscriptionStatus());
-
-        return response;
+        ClientUserTokenResponseDto dto = new ClientUserTokenResponseDto();
+        dto.setId(user.getId());
+        dto.setName(user.getName());
+        dto.setRole(user.getRole());
+        dto.setToken(token);
+        return dto;
     }
+
 
     @Override
     public ClientUser createClientUser(ClientUserCreateRequestDto request, Client authenticatedClient) {
@@ -91,6 +81,52 @@ public class ClientUserServiceImpl implements ClientUserService {
         return clientUserMapper.toDtoList(users);
     }
 
+    @Override
+    public ClientUserResponseDto updateClientUser(Long userId, ClientUserUpdateRequestDto request, Client client) throws AccessDeniedException {
+        ClientUser user = clientUserRepository.findByIdAndActiveTrue(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("El usuario no existe o está inactivo."));
+
+        if (!user.getClient().getId().equals(client.getId())) {
+            throw new AccessDeniedException("No puedes modificar un usuario que no te pertenece.");
+        }
+
+        user.setName(request.getName());
+
+        if (request.getNewPin() != null && !request.getNewPin().isBlank()) {
+            if (!request.getNewPin().matches("\\d{4}")) {
+                throw new IllegalArgumentException("El PIN debe ser un número de 4 dígitos.");
+            }
+            user.setPin(passwordEncoder.encode(request.getNewPin()));
+        }
+
+        clientUserRepository.save(user);
+        return clientUserMapper.toDto(user);
+    }
+
+    @Override
+    public void deleteClientUser(Long userId, Client client) throws AccessDeniedException {
+        ClientUser user = clientUserRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado."));
+
+        if (!user.getClient().getId().equals(client.getId())) {
+            throw new AccessDeniedException("No tienes permiso para eliminar este usuario.");
+        }
+
+        user.setActive(false);
+        clientUserRepository.save(user);
+    }
+
+    @Override
+    public ClientUserSelfResponseDto getCurrentClientUser(Long clientUserId) {
+        ClientUser user = clientUserRepository.findByIdAndActiveTrue(clientUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado o inactivo."));
+
+        ClientUserSelfResponseDto dto = new ClientUserSelfResponseDto();
+        dto.setId(user.getId());
+        dto.setName(user.getName());
+        dto.setRole(user.getRole());
+        return dto;
+    }
 
 }
 

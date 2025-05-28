@@ -1,5 +1,6 @@
 package com.mbarca89.DenTracker.dto.response.patient;
 
+import com.mbarca89.DenTracker.dto.response.client.CreatedByUserDto;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -22,6 +23,7 @@ public class PatientResponseDto {
     private String country;
     private String gender;
     private String observations;
+    private CreatedByUserDto createdBy;
 
     private boolean active;
     private String createdAt;

@@ -14,6 +14,8 @@ public interface PatientService {
     void updatePatient(Long id, PatientRequestDto dto, HttpServletRequest request);
     void deletePatient(Long id, HttpServletRequest request);
     void hardDeletePatient(Long id, HttpServletRequest request);
+    void transferPatient(Long patientId, Long targetUserId, HttpServletRequest request);
+    List<PatientResponseDto> getPatientsByUser(HttpServletRequest request);
 
 }
 

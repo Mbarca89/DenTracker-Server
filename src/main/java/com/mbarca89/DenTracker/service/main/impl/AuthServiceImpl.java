@@ -9,7 +9,7 @@ import com.mbarca89.DenTracker.repository.main.ClientRepository;
 import com.mbarca89.DenTracker.service.main.AuthService;
 import com.mbarca89.DenTracker.service.main.EmailService;
 import com.mbarca89.DenTracker.service.main.JwtService;
-import com.mbarca89.DenTracker.util.CryptoUtils;
+import com.mbarca89.DenTracker.utils.CryptoUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;

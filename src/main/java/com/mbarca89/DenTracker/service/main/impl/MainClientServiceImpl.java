@@ -14,7 +14,7 @@ import com.mbarca89.DenTracker.exception.UserAlreadyExistsException;
 import com.mbarca89.DenTracker.repository.main.ClientRepository;
 import com.mbarca89.DenTracker.service.main.MainClientService;
 import com.mbarca89.DenTracker.service.main.JwtService;
-import com.mbarca89.DenTracker.util.CryptoUtils;
+import com.mbarca89.DenTracker.utils.CryptoUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

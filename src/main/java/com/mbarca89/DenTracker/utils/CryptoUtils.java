@@ -1,4 +1,4 @@
-package com.mbarca89.DenTracker.util;
+package com.mbarca89.DenTracker.utils;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;

@@ -1,4 +1,4 @@
-package com.mbarca89.DenTracker.util;
+package com.mbarca89.DenTracker.utils;
 
 import com.mbarca89.DenTracker.service.main.JwtService;
 import jakarta.servlet.http.HttpServletRequest;

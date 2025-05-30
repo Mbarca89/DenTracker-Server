@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+
 public interface PatientRepository extends JpaRepository<Patient, Long> {
 
     List<Patient> findByClientIdAndActiveTrue(Long clientId);

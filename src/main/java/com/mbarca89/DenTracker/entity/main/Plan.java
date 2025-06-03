@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table(name = "plans")
 @Getter
@@ -25,16 +28,15 @@ public class Plan {
     private int maxPatients;
     private long storageLimitMb;
 
-    private boolean enableAgenda;
-    private boolean enablePatientHistory;
-    private boolean enableFileUpload;
-    private boolean enableHdImages;
-    private boolean enableTreatmentPlan;
-    private boolean enableSurgicalProtocol;
-    private boolean enableOdontogram;
-    private boolean enableOdontogramVersions;
-    private boolean enableWhatsApp;
-    private boolean enableDataExport;
-    private boolean enableAuditLog;
-    private boolean enableNotifications;
+    /**
+     * En lugar de todos los booleans, tenemos un Set<Feature>.
+     * Esto crea automáticamente la tabla intermedia plan_features(plan_id, feature_id).
+     */
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "plan_features",
+            joinColumns = @JoinColumn(name = "plan_id"),
+            inverseJoinColumns = @JoinColumn(name = "feature_id")
+    )
+    private Set<Feature> features = new HashSet<>();
 }

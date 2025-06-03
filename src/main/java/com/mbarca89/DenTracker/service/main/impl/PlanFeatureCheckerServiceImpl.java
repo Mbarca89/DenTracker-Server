@@ -5,12 +5,13 @@ import com.mbarca89.DenTracker.entity.main.Client;
 import com.mbarca89.DenTracker.exception.ResourceNotFoundException;
 import com.mbarca89.DenTracker.repository.client.ClientUserRepository;
 import com.mbarca89.DenTracker.repository.main.FeatureRepository;
+import com.mbarca89.DenTracker.service.main.PlanFeatureCheckerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class PlanFeatureCheckerServiceImpl {
+public class PlanFeatureCheckerServiceImpl implements PlanFeatureCheckerService {
 
     private final ClientUserRepository clientUserRepository;
     private final FeatureRepository featureRepository;

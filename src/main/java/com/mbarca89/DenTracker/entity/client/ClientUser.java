@@ -34,4 +34,8 @@ public class ClientUser {
 
     @Column(name = "active")
     private boolean active = true;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private ProfessionalProfile professionalProfile;
+
 }

@@ -10,6 +10,6 @@ import java.util.Optional;
 public interface ClientUserRepository extends JpaRepository<ClientUser, Long> {
 
     Optional<ClientUser> findByIdAndActiveTrue(Long id);
-
+    Optional<ClientUser> findByName(String username);
     List<ClientUser> findAllByClientIdAndActiveTrue(Long clientId);
 }
